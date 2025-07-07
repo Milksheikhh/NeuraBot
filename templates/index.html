@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot Status Monitor</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #4c4cdd;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .room-button {
+            background-color: #ffd700;
+            border: none;
+            border-radius: 50px;
+            padding: 1.5rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-banner {
+            position: fixed;
+            top: -100px;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            background-color: #b71c1c;
+            color: white;
+            text-align: center;
+            font-size: 1.5rem;
+            border-radius: 0 0 15px 15px;
+            transition: top 0.5s ease-in-out;
+        }
+
+        .status-banner.ready {
+            background-color: #4CAF50;
+            border: 2px solid #2E7D32;
+        }
+
+        .status-banner.busy {
+            background-color: #b71c1c;
+            border: 2px solid #7f0000;
+        }
+
+        .status-banner.show {
+            top: 0;
+        }
+
+        @media (max-width: 480px) {
+            .room-button {
+                font-size: 1.2rem;
+                padding: 1.2rem;
+            }
+            .button-container {
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="status-banner" class="status-banner">bot is busy</div>
+    <div class="button-container">
+        <button class="room-button" onclick="checkStatus('bedroom1')">
+            bedroom 1
+        </button>
+        <button class="room-button" onclick="checkStatus('living_room')">
+            living room
+        </button>
+        <button class="room-button" onclick="checkStatus('bedroom2')">
+            bedroom 2
+        </button>
+        <button class="room-button" onclick="checkStatus('charging_station')">
+            charging station
+        </button>
+    </div>
+
+    <script>
+        let bannerTimeout;
+        
+        function showBanner(banner) {
+            clearTimeout(bannerTimeout);
+            banner.classList.add('show');
+            bannerTimeout = setTimeout(() => {
+                banner.classList.remove('show');
+            }, 3000);
+        }
+
+        function checkStatus(room) {
+            fetch(`/check_status/${room}`)
+                .then(response => response.json())
+                .then(data => {
+                    const banner = document.getElementById('status-banner');
+                    if (data.status === 'ready') {
+                        banner.textContent = 'Command Sent';
+                        banner.className = 'status-banner ready';
+                    } else if (data.status === 'busy') {
+                        banner.textContent = 'bot is busy';
+                        banner.className = 'status-banner busy';
+                    } else if (data.status === 'at room') {
+                        banner.textContent = 'bot is already at room';
+                        banner.className = 'status-banner busy';
+                    }
+                    showBanner(banner);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+</body>
+</html>
